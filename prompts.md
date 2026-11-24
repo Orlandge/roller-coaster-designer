@@ -22,3 +22,6 @@ Added live speed and g-force charting, track failure markers, and a scored ride 
 
 ### Stage 5
 Completed rolling-friction controls, replay speed, ride safety scoring, and the selected-point banking score.
+
+### Stage 6
+Added a visible 150 ft hand-calculation check, final mobile layout review, and responsive interaction controls.

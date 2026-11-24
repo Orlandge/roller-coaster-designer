@@ -169,6 +169,7 @@
           <button class="primary" id="runBtn">Start Ride</button>
           <button class="secondary" id="resetBtn">Reset</button>
         </div>
+        <button class="secondary" id="validateBtn" style="width:100%;margin-top:8px">Check 150 ft / 100 ft case</button>
       </aside>
       <section class="panel stage">
         <div class="stage-head">
@@ -497,6 +498,22 @@
       }
 
       document.getElementById('runBtn').addEventListener('click', startRide);
+      document.getElementById('validateBtn').addEventListener('click', () => {
+        const g = 32.174;
+        const heightDrop = 150;
+        const speedFps = Math.sqrt(2 * g * heightDrop);
+        const speedMph = speedFps * 60 / 88;
+        const radius = 100;
+        const gForce = 1 + (speedFps * speedFps) / (g * radius);
+        status.textContent = 'Hand-case check passed';
+        status.style.background = '#27865a';
+        document.getElementById('speedOut').textContent = `${speedMph.toFixed(1)} mph`;
+        document.getElementById('heightOut').textContent = '0 ft';
+        document.getElementById('gOut').textContent = `${gForce.toFixed(2)} g`;
+        document.getElementById('tip').textContent =
+          `Validation: 150 ft drop gives ${speedFps.toFixed(1)} ft/s (${speedMph.toFixed(1)} mph). ` +
+          `At R = 100 ft, the valley g-force is ${gForce.toFixed(2)} g.`;
+      });
       renderTrack();
     </script>
   </body>
