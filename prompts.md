@@ -10,3 +10,6 @@ Initialized the project repository and created a first-draft `spec.md` containin
 
 ### Stage 1
 Built the first responsive page mockup with a track canvas, control panel, live readout panel, and chart placeholder.
+
+### Stage 2
+Added a smooth Catmull-Rom track, draggable control points, selected-point banking controls, and starting-crest synchronization.

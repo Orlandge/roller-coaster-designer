@@ -202,5 +202,120 @@
         <div id="tip">Edit the track by dragging its blue control points. The car will start at the first crest.</div>
       </aside>
     </main>
+    <script>
+      const trackSvg = document.getElementById('trackSvg');
+      const chartSvg = document.getElementById('chartSvg');
+      const crestInput = document.getElementById('crestInput');
+      const crestRange = document.getElementById('crestRange');
+      const muRange = document.getElementById('muRange');
+      const replayRange = document.getElementById('replayRange');
+      const bankRange = document.getElementById('bankRange');
+      const status = document.getElementById('status');
+
+      const points = [
+        { x:0, h:150, bank:0 },
+        { x:210, h:120, bank:0 },
+        { x:390, h:80, bank:0 },
+        { x:610, h:170, bank:0 },
+        { x:850, h:70, bank:0 },
+        { x:1000, h:50, bank:0 }
+      ];
+      let selectedPoint = 0;
+      let dragging = null;
+
+      function yForHeight(height) {
+        return 390 - (height / 300) * 350;
+      }
+
+      function catmullRomPath(items) {
+        let d = `M ${items[0].x} ${yForHeight(items[0].h)}`;
+        for (let i = 0; i < items.length - 1; i++) {
+          const p0 = items[i - 1] || items[i];
+          const p1 = items[i];
+          const p2 = items[i + 1];
+          const p3 = items[i + 2] || p2;
+          const cp1x = p1.x + (p2.x - p0.x) / 6;
+          const cp1y = yForHeight(p1.h) + (yForHeight(p2.h) - yForHeight(p0.h)) / 6;
+          const cp2x = p2.x - (p3.x - p1.x) / 6;
+          const cp2y = yForHeight(p2.h) - (yForHeight(p3.h) - yForHeight(p1.h)) / 6;
+          d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${yForHeight(p2.h)}`;
+        }
+        return d;
+      }
+
+      function renderTrack() {
+        const d = catmullRomPath(points);
+        trackSvg.innerHTML = `
+          <defs>
+            <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+              <path d="M25 0H0V25" fill="none" stroke="#dfe7ee" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect width="1000" height="420" fill="url(#grid)"/>
+          <path d="${d}" fill="none" stroke="#dce5ec" stroke-width="20" stroke-linecap="round"/>
+          <path d="${d}" fill="none" stroke="#10243e" stroke-width="7" stroke-linecap="round"/>
+          ${points.map((p,i) => `
+            <g class="point" data-index="${i}">
+              <circle cx="${p.x}" cy="${yForHeight(p.h)}" r="${i === selectedPoint ? 14 : 10}"
+                fill="${i === selectedPoint ? '#d99532' : '#72c4d8'}" stroke="#10243e" stroke-width="3"/>
+            </g>
+          `).join('')}
+          <g id="carGroup" transform="translate(${points[0].x} ${yForHeight(points[0].h)})">
+            <rect x="-16" y="-13" width="32" height="26" rx="6" fill="#2f67a5" stroke="#10243e" stroke-width="2"/>
+            <circle cx="-9" cy="15" r="7" fill="#10243e"/>
+            <circle cx="9" cy="15" r="7" fill="#10243e"/>
+          </g>`;
+        trackSvg.querySelectorAll('.point').forEach(node => {
+          node.addEventListener('pointerdown', event => {
+            selectedPoint = Number(node.dataset.index);
+            dragging = selectedPoint;
+            bankRange.value = points[selectedPoint].bank;
+            document.getElementById('bankValue').textContent = `${points[selectedPoint].bank} deg`;
+            trackSvg.setPointerCapture(event.pointerId);
+            renderTrack();
+          });
+        });
+      }
+
+      trackSvg.addEventListener('pointermove', event => {
+        if (dragging === null) return;
+        const rect = trackSvg.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width * 1000;
+        const y = (event.clientY - rect.top) / rect.height * 420;
+        const i = dragging;
+        if (i > 0) points[i].x = Math.max(points[i-1].x + 20, Math.min(points[i+1].x - 20, x));
+        points[i].h = Math.max(0, Math.min(300, (390 - y) / 350 * 300));
+        if (i === 0) points[i].h = 150;
+        renderTrack();
+      });
+      trackSvg.addEventListener('pointerup', () => dragging = null);
+      trackSvg.addEventListener('pointerleave', () => dragging = null);
+
+      function syncCrest(value) {
+        const height = Math.max(20, Math.min(300, Number(value) || 150));
+        crestInput.value = height;
+        crestRange.value = height;
+        points[0].h = height;
+        document.getElementById('heightOut').textContent = `${height} ft`;
+        renderTrack();
+      }
+      crestInput.addEventListener('change', event => syncCrest(event.target.value));
+      crestRange.addEventListener('input', event => syncCrest(event.target.value));
+
+      muRange.addEventListener('input', event => {
+        document.getElementById('muValue').textContent = Number(event.target.value).toFixed(3);
+      });
+      replayRange.addEventListener('input', event => {
+        document.getElementById('speedValue').textContent = `${Number(event.target.value).toFixed(2).replace('.00','')}x`;
+      });
+      bankRange.addEventListener('input', event => {
+        const value = Number(event.target.value);
+        points[selectedPoint].bank = value;
+        document.getElementById('bankValue').textContent = `${value} deg`;
+      });
+
+      document.getElementById('resetBtn').addEventListener('click', () => syncCrest(150));
+      renderTrack();
+    </script>
   </body>
 </html>
