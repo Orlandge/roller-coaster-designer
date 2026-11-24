@@ -1,0 +1,9 @@
+# Prompt Log
+
+## 2026-11-24
+
+### Request
+The user attached the assignment and selected "Roller Coaster Designer," with "Create the first spec draft" as the starting point.
+
+### Agent Action
+Initialized the project repository and created a first-draft `spec.md` containing the seven required sections, a validation case, and initial build stages.
