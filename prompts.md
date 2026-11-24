@@ -16,3 +16,6 @@ Added a smooth Catmull-Rom track, draggable control points, selected-point banki
 
 ### Stage 3
 Added conservation-of-energy ride animation, rolling-friction input, replay speed, live speed/height/g-force readouts, reset behavior, and initial failure handling.
+
+### Stage 4
+Added live speed and g-force charting, track failure markers, and a scored ride summary.
