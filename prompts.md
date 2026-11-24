@@ -13,3 +13,6 @@ Built the first responsive page mockup with a track canvas, control panel, live 
 
 ### Stage 2
 Added a smooth Catmull-Rom track, draggable control points, selected-point banking controls, and starting-crest synchronization.
+
+### Stage 3
+Added conservation-of-energy ride animation, rolling-friction input, replay speed, live speed/height/g-force readouts, reset behavior, and initial failure handling.

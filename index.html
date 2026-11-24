@@ -314,7 +314,119 @@
         document.getElementById('bankValue').textContent = `${value} deg`;
       });
 
-      document.getElementById('resetBtn').addEventListener('click', () => syncCrest(150));
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        if (rideFrame) cancelAnimationFrame(rideFrame);
+        rideFrame = null;
+        syncCrest(150);
+        status.textContent = 'Design ready';
+        status.style.background = '';
+        document.getElementById('speedOut').textContent = '0 mph';
+        document.getElementById('gOut').textContent = '1.00 g';
+        document.getElementById('scoreOut').textContent = '--';
+      });
+      let rideFrame = null;
+
+      function heightAtX(x) {
+        for (let i = 0; i < points.length - 1; i++) {
+          if (x >= points[i].x && x <= points[i+1].x) {
+            const t = (x - points[i].x) / (points[i+1].x - points[i].x);
+            return points[i].h + (points[i+1].h - points[i].h) * t;
+          }
+        }
+        return points[points.length-1].h;
+      }
+
+      function radiusAtX(x) {
+        const step = 5;
+        const xm = Math.max(0, x - step);
+        const xp = Math.min(1000, x + step);
+        const hm = heightAtX(xm);
+        const hc = heightAtX(x);
+        const hp = heightAtX(xp);
+        const dx1 = (x - xm) / 1000 * 1000;
+        const dx2 = (xp - x) / 1000 * 1000;
+        const slopeLeft = (hc - hm) / Math.max(1, dx1);
+        const slopeRight = (hp - hc) / Math.max(1, dx2);
+        const slope = (slopeLeft + slopeRight) / 2;
+        const second = (slopeRight - slopeLeft) / Math.max(1, (dx1 + dx2) / 2);
+        const dsDx = Math.sqrt(1 + slope * slope);
+        const curvature = Math.abs(second) / Math.pow(dsDx, 3);
+        return curvature > 0.00001 ? 1 / curvature : 100000;
+      }
+
+      function startRide() {
+        if (rideFrame) cancelAnimationFrame(rideFrame);
+        const h0 = points[0].h;
+        const mu = Number(muRange.value);
+        let x = 0;
+        let distance = 0;
+        let lastTime = null;
+        let failed = false;
+
+        status.textContent = 'Ride in progress';
+        status.style.background = '#27865a';
+
+        function animate(time) {
+          if (lastTime === null) lastTime = time;
+          const realDelta = Math.min((time - lastTime) / 1000, 0.05);
+          lastTime = time;
+          const replay = Number(replayRange.value);
+          const delta = realDelta * replay;
+          const height = heightAtX(x);
+          const speedFps = Math.sqrt(Math.max(0,
+            2 * 32.174 * (h0 - height) - 2 * 32.174 * mu * distance
+          ));
+          const speedMph = speedFps * 60 / 88;
+          const radius = radiusAtX(x);
+          let gForce = 1;
+          if (radius < 100000) {
+            const leftHeight = heightAtX(Math.max(0,x-2));
+            const rightHeight = heightAtX(Math.min(1000,x+2));
+            const valley = leftHeight > height || rightHeight > height;
+            gForce = valley
+              ? 1 + (speedFps * speedFps) / (32.174 * radius)
+              : 1 - (speedFps * speedFps) / (32.174 * radius);
+          }
+
+          document.getElementById('speedOut').textContent = `${speedMph.toFixed(1)} mph`;
+          document.getElementById('heightOut').textContent = `${height.toFixed(1)} ft`;
+          document.getElementById('gOut').textContent = `${gForce.toFixed(2)} g`;
+
+          const car = document.getElementById('carGroup');
+          if (car) car.setAttribute('transform', `translate(${x} ${yForHeight(height)})`);
+
+          if (gForce > 4 || gForce < -1) {
+            failed = true;
+            status.textContent = 'Unsafe g-force';
+            status.style.background = '#b94747';
+            document.getElementById('tip').textContent =
+              `Failure at x ≈ ${x.toFixed(0)} ft: vertical g-force reached ${gForce.toFixed(2)} g.`;
+          }
+          if (speedFps < 0.5 && x > 20 && height > h0 - 2) {
+            failed = true;
+            status.textContent = 'Insufficient energy';
+            status.style.background = '#d99532';
+            document.getElementById('tip').textContent =
+              `Roll-back at x ≈ ${x.toFixed(0)} ft: the car does not have enough energy to reach this crest.`;
+          }
+
+          if (!failed) {
+            const advance = Math.max(2, speedFps * delta);
+            x = Math.min(1000, x + advance);
+            distance += advance;
+            if (x >= 1000) {
+              status.textContent = 'Ride complete';
+              status.style.background = '#27865a';
+              document.getElementById('scoreOut').textContent = 'Complete';
+              return;
+            }
+            rideFrame = requestAnimationFrame(animate);
+          }
+        }
+        rideFrame = requestAnimationFrame(animate);
+      }
+
+      document.getElementById('runBtn').addEventListener('click', startRide);
       renderTrack();
     </script>
   </body>
