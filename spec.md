@@ -79,6 +79,7 @@ n=1+\frac{98.246^2}{32.174(100)}
 \]
 
 The expected validation results are approximately 98.2 ft/s, 67.0 mph, and 4.00 g in the valley. The app is acceptable when the displayed values round consistently to these values.
+The app's built-in "Check 150 ft / 100 ft case" control reports 98.2 ft/s, 67.0 mph, and 4.00 g, matching the hand calculation.
 
 ## Features
 Must-have features are the editable smooth track, conservation-of-energy motion, animated live readouts and plots, and roll-back/g-load failure marking.

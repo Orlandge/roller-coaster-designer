@@ -25,3 +25,6 @@ Completed rolling-friction controls, replay speed, ride safety scoring, and the 
 
 ### Stage 6
 Added a visible 150 ft hand-calculation check, final mobile layout review, and responsive interaction controls.
+
+### Verification
+Opened the app in the browser, started the ride, confirmed live readouts and the animated plot/failure marker, and verified the built-in 150 ft / 100 ft case reports 98.2 ft/s, 67.0 mph, and 4.00 g.
