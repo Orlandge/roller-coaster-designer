@@ -7,3 +7,6 @@ The user attached the assignment and selected "Roller Coaster Designer," with "C
 
 ### Agent Action
 Initialized the project repository and created a first-draft `spec.md` containing the seven required sections, a validation case, and initial build stages.
+
+### Stage 1
+Built the first responsive page mockup with a track canvas, control panel, live readout panel, and chart placeholder.

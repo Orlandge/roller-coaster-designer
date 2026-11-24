@@ -4,10 +4,203 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Roller Coaster Designer</title>
+    <style>
+      :root {
+        --navy:#10243e;
+        --blue:#2f67a5;
+        --cyan:#72c4d8;
+        --cream:#f7f4ed;
+        --green:#27865a;
+        --amber:#d99532;
+        --red:#b94747;
+        --line:#d6d9dd;
+      }
+      * { box-sizing:border-box; }
+      body {
+        margin:0;
+        font-family:Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+        color:var(--navy);
+        background:var(--cream);
+      }
+      header {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:18px 28px;
+        color:white;
+        background:var(--navy);
+      }
+      header h1 { margin:0; font-size:22px; letter-spacing:.2px; }
+      .status-pill {
+        padding:7px 12px;
+        border:1px solid rgba(255,255,255,.22);
+        border-radius:999px;
+        font-size:13px;
+      }
+      main {
+        max-width:1500px;
+        margin:auto;
+        padding:18px;
+        display:grid;
+        grid-template-columns:260px minmax(500px,1fr) 260px;
+        gap:14px;
+      }
+      .panel {
+        border:1px solid var(--line);
+        border-radius:10px;
+        background:white;
+        box-shadow:0 2px 10px rgba(16,36,62,.05);
+      }
+      .controls { padding:16px; }
+      .controls h2, .readouts h2 {
+        margin:0 0 14px;
+        font-size:15px;
+        text-transform:uppercase;
+        letter-spacing:.8px;
+      }
+      .field { margin:14px 0; }
+      .field label {
+        display:flex;
+        justify-content:space-between;
+        margin-bottom:7px;
+        font-size:13px;
+        font-weight:700;
+      }
+      input[type="range"] { width:100%; accent-color:var(--blue); }
+      input[type="number"] {
+        width:74px;
+        padding:5px;
+        border:1px solid var(--line);
+        border-radius:5px;
+      }
+      .button-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+      button {
+        border:0;
+        border-radius:7px;
+        padding:10px 12px;
+        font-weight:800;
+        cursor:pointer;
+      }
+      .primary { background:var(--blue); color:white; }
+      .secondary { background:#e9edf2; color:var(--navy); }
+      .stage {
+        min-height:580px;
+        overflow:hidden;
+        display:flex;
+        flex-direction:column;
+      }
+      .stage-head {
+        display:flex;
+        justify-content:space-between;
+        padding:12px 16px;
+        border-bottom:1px solid var(--line);
+        font-size:13px;
+      }
+      #track-wrap {
+        position:relative;
+        flex:1;
+        min-height:360px;
+        background:
+          linear-gradient(rgba(47,103,165,.07) 1px,transparent 1px),
+          linear-gradient(90deg,rgba(47,103,165,.07) 1px,transparent 1px),
+          #fbfdff;
+        background-size:25px 25px;
+      }
+      #trackSvg { width:100%; height:100%; display:block; }
+      #chartSvg { width:100%; height:190px; display:block; }
+      .chart-wrap { border-top:1px solid var(--line); }
+      .readouts { padding:16px; }
+      .metric {
+        margin-bottom:10px;
+        padding:12px;
+        border-radius:8px;
+        background:#eef3f7;
+      }
+      .metric span { display:block; font-size:12px; color:#5f6d7b; }
+      .metric strong { display:block; margin-top:4px; font-size:24px; }
+      .gauge {
+        height:8px;
+        margin-top:9px;
+        border-radius:99px;
+        background:linear-gradient(90deg,#b94747 0 12.5%,#27865a 12.5% 62.5%,#d99532 62.5% 100%);
+      }
+      #tip { padding:10px 12px; border-radius:7px; background:#edf5fb; font-size:12px; line-height:1.45; }
+      @media (max-width:1050px) {
+        main { grid-template-columns:220px minmax(420px,1fr); }
+        .readouts { grid-column:1/-1; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+        .readouts h2 { grid-column:1/-1; margin-bottom:0; }
+      }
+      @media (max-width:720px) {
+        header { padding:14px 16px; }
+        main { display:flex; flex-direction:column; padding:10px; }
+        .stage { min-height:520px; order:-1; }
+        #track-wrap { min-height:330px; }
+        .readouts { display:grid; grid-template-columns:repeat(2,1fr); }
+        .readouts h2 { grid-column:1/-1; }
+      }
+    </style>
   </head>
   <body>
-    <main>
+    <header>
       <h1>Roller Coaster Designer</h1>
+      <div class="status-pill" id="status">Design ready</div>
+    </header>
+    <main>
+      <aside class="panel controls">
+        <h2>Ride Setup</h2>
+        <div class="field">
+          <label><span>Starting crest</span><span><input id="crestInput" type="number" value="150" min="20" max="300"> ft</span></label>
+          <input id="crestRange" type="range" min="20" max="300" value="150">
+        </div>
+        <div class="field">
+          <label><span>Rolling friction</span><span id="muValue">0.010</span></label>
+          <input id="muRange" type="range" min="0" max="0.030" step="0.001" value="0.010">
+        </div>
+        <div class="field">
+          <label><span>Replay speed</span><span id="speedValue">1.0x</span></label>
+          <input id="replayRange" type="range" min="0.25" max="2" step="0.25" value="1">
+        </div>
+        <div class="field">
+          <label><span>Banking at selected point</span><span id="bankValue">0 deg</span></label>
+          <input id="bankRange" type="range" min="-45" max="45" step="1" value="0">
+        </div>
+        <div class="button-row">
+          <button class="primary" id="runBtn">Start Ride</button>
+          <button class="secondary" id="resetBtn">Reset</button>
+        </div>
+      </aside>
+      <section class="panel stage">
+        <div class="stage-head">
+          <strong>Track Elevation Profile</strong>
+          <span>Drag control points to shape the track</span>
+        </div>
+        <div id="track-wrap">
+          <svg id="trackSvg" viewBox="0 0 1000 420" aria-label="Roller coaster track editor">
+            <path d="M0 350 C100 340 150 350 210 320 C280 280 320 290 390 340 C470 390 530 390 610 280 C700 160 780 220 850 350 C910 350 960 360 1000 350" fill="none" stroke="#dce5ec" stroke-width="18"/>
+            <path d="M0 350 C100 340 150 350 210 320 C280 280 320 290 390 340 C470 390 530 390 610 280 C700 160 780 220 850 350 C910 350 960 360 1000 350" fill="none" stroke="#10243e" stroke-width="7"/>
+            <g fill="#72c4d8" stroke="#10243e" stroke-width="3">
+              <circle cx="0" cy="350" r="11"/><circle cx="210" cy="320" r="11"/>
+              <circle cx="390" cy="340" r="11"/><circle cx="610" cy="280" r="11"/>
+              <circle cx="850" cy="350" r="11"/><circle cx="1000" cy="350" r="11"/>
+            </g>
+            <g transform="translate(0 350)" fill="#2f67a5">
+              <rect x="-14" y="-13" width="28" height="26" rx="6"/>
+              <circle cx="-8" cy="15" r="7"/><circle cx="8" cy="15" r="7"/>
+            </g>
+          </svg>
+        </div>
+        <div class="chart-wrap">
+          <svg id="chartSvg" viewBox="0 0 1000 190" aria-label="Speed and g-force chart"></svg>
+        </div>
+      </section>
+      <aside class="panel readouts">
+        <h2>Live Readout</h2>
+        <div class="metric"><span>Speed</span><strong id="speedOut">0 mph</strong></div>
+        <div class="metric"><span>Height</span><strong id="heightOut">150 ft</strong></div>
+        <div class="metric"><span>Vertical g-force</span><strong id="gOut">1.00 g</strong><div class="gauge"></div></div>
+        <div class="metric"><span>Safety score</span><strong id="scoreOut">--</strong></div>
+        <div id="tip">Edit the track by dragging its blue control points. The car will start at the first crest.</div>
+      </aside>
     </main>
   </body>
 </html>
