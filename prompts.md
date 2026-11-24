@@ -19,3 +19,6 @@ Added conservation-of-energy ride animation, rolling-friction input, replay spee
 
 ### Stage 4
 Added live speed and g-force charting, track failure markers, and a scored ride summary.
+
+### Stage 5
+Completed rolling-friction controls, replay speed, ride safety scoring, and the selected-point banking score.
